@@ -4,6 +4,7 @@
  *
  *************************************************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "correct_path.h"
 #include "tests.h"
@@ -19,8 +20,16 @@ int main(int argc, char *argv[])
             tests_run_all();
         }
         else {
-            char *sequence = correct_path(argv[1]);
-            printf("solution: %s\n", sequence);
+            char *solution = malloc(strlen(argv[1]));
+            correct_path(argv[1], solution);
+            printf("solution: %s\n", solution);
+
+            if (argc > 2) {
+                char * display = argv[2];
+                if ((display[0] == '-') && (display[1] == 'd')) {
+                    correct_path_display();
+                }
+            }
         }
     }
     else {

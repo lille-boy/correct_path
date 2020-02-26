@@ -1,6 +1,7 @@
 #ifndef CORRECT_PATH_H
 #define CORRECT_PATH_H
 
-char * correct_path(const char *sequence);
+void correct_path(const char *input, char *output);
+void correct_path_display(void);
 
 #endif /* CORRECT_PATH_H */
