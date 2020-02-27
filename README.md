@@ -14,12 +14,12 @@ There will only ever be one correct path and there will always be at least one q
 
 # Examples
 ## Example 1
-`Input: "???rrurdr?"`
+`Input: ???rrurdr?`
 
 `Output: dddrrurdrd`
 
 ## Example 2
-`Input: "drdr??rrddd?"`
+`Input: drdr??rrddd?`
 
 `Output: drdruurrdddd`
 

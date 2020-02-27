@@ -1,21 +1,22 @@
 /**************************************************************************************************
  *
  * Find the correct path
- * Start in the top left cell (A1). End in the bottom right (E5)
+ * Start in the top left cell (R0, C0). End in the bottom right (R4, C4)
  *
- *       A     B     C     D     E
- *    ______________________________
- *  1 |     |     |     |     |     |
- *    |__V__|_____|_____|_____|_____|
- *  2 |     |     |     |     |     |
- *    |__V__|_____|_____|_____|_____|
- *  3 |     |     |     |     |     |
- *    |__V__|_____|_____|_____|_____|
- *  4 |     |     |     |     |     |
- *    |__V__|_____|_____|_____|_____|
- *  5 |  >  |  >  |  >  |  >  |     |
- *    |_____|_____|____ |_____|_____|
+ *       C0     C1    C2    C3    C4
+ *     ______________________________
+ *  R0 |  X  |     |     |     |     |
+ *     |_____|_____|_____|_____|_____|
+ *  R1 |     |     |     |     |     |
+ *     |__V__|_____|_____|_____|_____|
+ *  R2 |     |     |     |     |     |
+ *     |__V__|_____|_____|_____|_____|
+ *  R3 |     |     |     |     |     |
+ *     |__V__|_____|_____|_____|_____|
+ *  R4 |  >  |  >  |  >  |  >  |  X  |
+ *     |_____|_____|____ |_____|_____|
  *
+ * Note: 4 times right + 4 times down get us to the target cell (R4, C4)
  *
  *************************************************************************************************/
 #include <stdio.h>
@@ -23,14 +24,20 @@
 #include <stdbool.h>
 #include "correct_path.h"
 
-#define GRID_SIZE   5
-#define TARGET      (GRID_SIZE - 1)
+#define MATRIX_SIZE   5
+#define TARGET      (MATRIX_SIZE - 1)
 
-/* Note: 4 times right + 4 times down get us to the target cell E5 */
 unsigned int mov_right;
 unsigned int mov_down;
 
-unsigned int grid[GRID_SIZE][GRID_SIZE];
+/* matrix to traverse: 0 is 'not visited', 1 is 'visited' */
+unsigned int matrix[MATRIX_SIZE][MATRIX_SIZE] =
+ { {0, 0, 0, 0, 0},
+   {0, 0, 0, 0, 0},
+   {0, 0, 0, 0, 0},
+   {0, 0, 0, 0, 0},
+   {0, 0, 0, 0, 0},
+ };
 
 struct position {
     int row;
@@ -38,22 +45,23 @@ struct position {
 };
 
 /******************************************************************************
- * Initialize grid
+ * Initialize matrix
+ * Set starting cell (R0, C0) to 1 'visited'
  *****************************************************************************/
-static void init_grid(void)
+static void init_matrix(void)
 {
-    for (int i = 0; i < GRID_SIZE; i++) {
-        for (int j = 0; j < GRID_SIZE; j++) {
-            grid[i][j] = 0;
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            matrix[i][j] = 0;
         }
     }
-    grid[0][0] = 1;
+    matrix[0][0] = 1;
 }
 
 /******************************************************************************
- * Update the path on the grid until the first '?'
+ * Update the path on the matrix until the first '?'
  *****************************************************************************/
-static void update_grid(char *sequence)
+static void update_matrix(char *sequence)
 {
     int row = 0;
     int column = 0;
@@ -61,16 +69,16 @@ static void update_grid(char *sequence)
     for (int i = 0; i < strlen(sequence); i++) {
         switch(sequence[i]) {
             case 'r':
-                grid[row][++column] = 1;
+                matrix[row][++column] = 1;
             break;
             case 'd':
-                grid[++row][column] = 1;
+                matrix[++row][column] = 1;
             break;
             case 'l':
-                grid[row][--column] = 1;
+                matrix[row][--column] = 1;
             break;
             case 'u':
-                grid[--row][column] = 1;
+                matrix[--row][column] = 1;
             break;
             case '?':
             default:
@@ -84,10 +92,12 @@ static void update_grid(char *sequence)
 
 /******************************************************************************
  * Check if it's possible to move right
+ * - moving right is within the matrix
+ * - cell to move to has not been visited
  *****************************************************************************/
 static bool condition_right(struct position *pos)
 {
-    if ((pos->column < TARGET) && (grid[pos->row][pos->column + 1] == 0)) {
+    if ((pos->column < TARGET) && (matrix[pos->row][pos->column + 1] == 0)) {
         return true;
     }
     else {
@@ -97,10 +107,12 @@ static bool condition_right(struct position *pos)
 
 /******************************************************************************
  * Check if it's possible to move left
+ * - moving left is within the matrix
+ * - cell to move to has not been visited
  *****************************************************************************/
 static bool condition_left(struct position *pos)
 {
-    if ((pos->column > 0) && (grid[pos->row][pos->column - 1] == 0)) {
+    if ((pos->column > 0) && (matrix[pos->row][pos->column - 1] == 0)) {
         return true;
     }
     else {
@@ -113,8 +125,6 @@ static bool condition_left(struct position *pos)
  *****************************************************************************/
 static void move_column(char *sequence, struct position *pos, int index)
 {
-    int size = strlen(sequence);
-
     if (sequence[index] == 'r') {
         pos->column++;
     }
@@ -149,15 +159,17 @@ static void move_column(char *sequence, struct position *pos, int index)
             }
         }
     }
-    update_grid(sequence);
+    update_matrix(sequence);
 }
 
 /******************************************************************************
  * Check if it's possible to move up
+ * - moving up is within the matrix
+ * - cell to move to has not been visited
  *****************************************************************************/
 static bool condition_up(struct position *pos)
 {
-    if ((pos->row > 0) && (grid[pos->row - 1][pos->column] == 0)) {
+    if ((pos->row > 0) && (matrix[pos->row - 1][pos->column] == 0)) {
         return true;
     }
     else {
@@ -167,10 +179,12 @@ static bool condition_up(struct position *pos)
 
 /******************************************************************************
  * Check if it's possible to move down
+ * - moving down is within the matrix
+ * - cell to move to has not been visited
  *****************************************************************************/
 static bool condition_down(struct position *pos)
 {
-    if ((pos->row < TARGET) && (grid[pos->row + 1][pos->column] == 0)) {
+    if ((pos->row < TARGET) && (matrix[pos->row + 1][pos->column] == 0)) {
         return true;
     }
     else {
@@ -183,8 +197,6 @@ static bool condition_down(struct position *pos)
  *****************************************************************************/
 static void move_row(char *sequence, struct position *pos, int index)
 {
-    int size = strlen(sequence);
-
     if (sequence[index] == 'd') {
         pos->row++;
     }
@@ -219,10 +231,61 @@ static void move_row(char *sequence, struct position *pos, int index)
             }
         }
     }
-    update_grid(sequence);
+    update_matrix(sequence);
 }
 
+/******************************************************************************
+ * Find the correct path moving row first
+ *****************************************************************************/
+static void path_row_first(char *sequence, struct position *pos, int size)
+{
+    for (int i = 0; i < size; i++) {
+        move_row(sequence, pos, i);
+        move_column(sequence, pos, i);
+    }
+}
 
+/******************************************************************************
+ * Find the correct path moving columns first
+ *****************************************************************************/
+static void path_column_first(char *sequence, struct position *pos, int size)
+{
+    for (int i = 0; i < size; i++) {
+        move_column(sequence, pos, i);
+        move_row(sequence, pos, i);
+    }
+}
+
+/******************************************************************************
+ * Initialize
+ *****************************************************************************/
+void init_path(const char *input, char *output)
+{
+    mov_right = 0;
+    mov_down = 0;
+    init_matrix();
+
+    for (int i = 0; i < strlen(input); i++) {
+        output[i] = input[i];
+
+        switch (output[i]) {
+            case 'r':
+                mov_right++;
+            break;
+            case 'd':
+                mov_down++;
+            break;
+            case 'l':
+                mov_right--;
+            break;
+            case 'u':
+                mov_down--;
+            break;
+            default:
+            break;
+        }
+    }
+}
 
 /******************************************************************************
  * Find the correct path
@@ -232,58 +295,28 @@ void correct_path(const char *input, char *output)
     int size = strlen(input);
     struct position pos = {.row = 0, .column = 0};
 
-    mov_right = 0;
-    mov_down = 0;
-    init_grid();
-
-    /* copy the input to a local variable */
-    for (int i = 0; i < size; i++) {
-        output[i] = input[i];
-
-        switch (output[i]) {
-            case 'r':
-                mov_right++;
-                //pos.column++;
-            break;
-            case 'd':
-                mov_down++;
-                //pos.row++;
-            break;
-            case 'l':
-                mov_right--;
-                //pos.column--;
-            break;
-            case 'u':
-                mov_down--;
-                //pos.row--;
-            break;
-            case '?':
-            default:
-            break;
-        }
-    }
-
-    for (int j = 0; j < size; j++) {
-        move_column(output, &pos, j);
-        move_row(output, &pos, j);
-    }
-
-    //correct_path_display();
+    /* first attempt: move rows first */
+    init_path(input, output);
+    path_row_first(output, &pos, size);
 
     if ((pos.row != TARGET) || (pos.column != TARGET)) {
-        printf("end in cell: {row %d, column %d}\n", pos.row, pos.column);
+        /* didn't end in (R4, C4), try again and move columns first */
+        pos.row = 0;
+        pos.column = 0;
+        init_path(input, output);
+        path_column_first(output, &pos, size);
     }
 }
 
 /******************************************************************************
- * Display the path on the grid
+ * Display the path on the matrix
  *****************************************************************************/
 void correct_path_display(void)
 {
-    for (int i = 0; i < GRID_SIZE; i++) {
-        for (int j = 0; j < GRID_SIZE; j ++) {
-            printf("%d ", grid[i][j]);
-            if (j == (GRID_SIZE - 1)) {
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j ++) {
+            printf("%d ", matrix[i][j]);
+            if (j == (MATRIX_SIZE - 1)) {
                 printf("\n");
             }
         }
