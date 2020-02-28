@@ -24,11 +24,12 @@
 #include <stdbool.h>
 #include "correct_path.h"
 
-#define MATRIX_SIZE   5
-#define TARGET      (MATRIX_SIZE - 1)
+#define MATRIX_SIZE 5
+#define TARGET (MATRIX_SIZE - 1)
 
-unsigned int mov_right;
+int size;
 unsigned int mov_down;
+unsigned int mov_right;
 
 /* matrix to traverse: 0 is 'not visited', 1 is 'visited' */
 unsigned int matrix[MATRIX_SIZE][MATRIX_SIZE] =
@@ -93,11 +94,14 @@ static void update_matrix(char *sequence)
 /******************************************************************************
  * Check if it's possible to move right
  * - moving right is within the matrix
+ * - next direction is not the opposite
  * - cell to move to has not been visited
  *****************************************************************************/
-static bool condition_right(struct position *pos)
+static bool condition_right(char *sequence, struct position *pos, int index)
 {
-    if ((pos->column < TARGET) && (matrix[pos->row][pos->column + 1] == 0)) {
+    if ((pos->column < TARGET) &&
+        ((index < size) && (sequence[index + 1] != 'l')) &&
+        (matrix[pos->row][pos->column + 1] == 0)) {
         return true;
     }
     else {
@@ -108,11 +112,14 @@ static bool condition_right(struct position *pos)
 /******************************************************************************
  * Check if it's possible to move left
  * - moving left is within the matrix
+ * - next direction is not the opposite
  * - cell to move to has not been visited
  *****************************************************************************/
-static bool condition_left(struct position *pos)
+static bool condition_left(char *sequence, struct position *pos, int index)
 {
-    if ((pos->column > 0) && (matrix[pos->row][pos->column - 1] == 0)) {
+    if ((pos->column > 0) &&
+        ((index < size) && (sequence[index + 1] != 'r')) &&
+        (matrix[pos->row][pos->column - 1] == 0)) {
         return true;
     }
     else {
@@ -133,26 +140,26 @@ static void move_column(char *sequence, struct position *pos, int index)
     }
     else if (sequence[index] == '?') {
         if (mov_right < TARGET) {
-            if (condition_right(pos) == true) {
+            if (condition_right(sequence, pos, index) == true) {
                 sequence[index] = 'r';
                 pos->column++;
                 mov_right++;
             }
         }
         else if (mov_right > TARGET) {
-            if (condition_left(pos) == true) {
+            if (condition_left(sequence, pos, index) == true) {
                 sequence[index] = 'l';
                 pos->column--;
                 mov_right--;
             }
         }
         else if ((mov_right == TARGET) && (mov_down == TARGET)) {
-            if (condition_right(pos) == true) {
+            if (condition_right(sequence, pos, index) == true) {
                 sequence[index] = 'r';
                 pos->column++;
                 mov_right++;
             }
-            else if (condition_left(pos) == true) {
+            else if (condition_left(sequence, pos, index) == true) {
                 sequence[index] = 'l';
                 pos->column--;
                 mov_right--;
@@ -165,11 +172,14 @@ static void move_column(char *sequence, struct position *pos, int index)
 /******************************************************************************
  * Check if it's possible to move up
  * - moving up is within the matrix
+ * - next direction is not the opposite
  * - cell to move to has not been visited
  *****************************************************************************/
-static bool condition_up(struct position *pos)
+static bool condition_up(char *sequence, struct position *pos, int index)
 {
-    if ((pos->row > 0) && (matrix[pos->row - 1][pos->column] == 0)) {
+    if ((pos->row > 0) &&
+        ((index < size) && (sequence[index + 1] != 'd')) &&
+        (matrix[pos->row - 1][pos->column] == 0)) {
         return true;
     }
     else {
@@ -182,9 +192,11 @@ static bool condition_up(struct position *pos)
  * - moving down is within the matrix
  * - cell to move to has not been visited
  *****************************************************************************/
-static bool condition_down(struct position *pos)
+static bool condition_down(char *sequence, struct position *pos, int index)
 {
-    if ((pos->row < TARGET) && (matrix[pos->row + 1][pos->column] == 0)) {
+    if ((pos->row < TARGET) &&
+        ((index < size) && (sequence[index + 1] != 'u')) &&
+        (matrix[pos->row + 1][pos->column] == 0)) {
         return true;
     }
     else {
@@ -205,29 +217,29 @@ static void move_row(char *sequence, struct position *pos, int index)
     }
     else if (sequence[index] == '?') {
         if (mov_down < TARGET) {
-            if (condition_down(pos) == true) {
+            if (condition_down(sequence, pos, index) == true) {
                 sequence[index] = 'd';
                 pos->row++;
                 mov_down++;
             }
         }
         else if (mov_down > TARGET) {
-            if (condition_up(pos) == true) {
+            if (condition_up(sequence, pos, index) == true) {
                 sequence[index] = 'u';
                 pos->row--;
                 mov_down--;
             }
         }
         else if ((mov_right == TARGET) && (mov_down == TARGET)) {
-            if (condition_up(pos) == true) {
-                sequence[index] = 'u';
-                pos->row--;
-                mov_down--;
-            }
-            else if (condition_down(pos) == true) {
+            if (condition_down(sequence, pos, index) == true) {
                 sequence[index] = 'd';
                 pos->row++;
                 mov_down++;
+            }
+            else if (condition_up(sequence, pos, index) == true) {
+                sequence[index] = 'u';
+                pos->row--;
+                mov_down--;
             }
         }
     }
@@ -237,7 +249,7 @@ static void move_row(char *sequence, struct position *pos, int index)
 /******************************************************************************
  * Find the correct path moving row first
  *****************************************************************************/
-static void path_row_first(char *sequence, struct position *pos, int size)
+static void path_row_first(char *sequence, struct position *pos)
 {
     for (int i = 0; i < size; i++) {
         move_row(sequence, pos, i);
@@ -246,9 +258,9 @@ static void path_row_first(char *sequence, struct position *pos, int size)
 }
 
 /******************************************************************************
- * Find the correct path moving columns first
+ * Find the correct path moving column first
  *****************************************************************************/
-static void path_column_first(char *sequence, struct position *pos, int size)
+static void path_column_first(char *sequence, struct position *pos)
 {
     for (int i = 0; i < size; i++) {
         move_column(sequence, pos, i);
@@ -259,16 +271,14 @@ static void path_column_first(char *sequence, struct position *pos, int size)
 /******************************************************************************
  * Initialize
  *****************************************************************************/
-void init_path(const char *input, char *output)
+void init_path(const char *input)
 {
     mov_right = 0;
     mov_down = 0;
     init_matrix();
 
-    for (int i = 0; i < strlen(input); i++) {
-        output[i] = input[i];
-
-        switch (output[i]) {
+    for (int i = 0; i < size; i++) {
+        switch (input[i]) {
             case 'r':
                 mov_right++;
             break;
@@ -292,19 +302,21 @@ void init_path(const char *input, char *output)
  *****************************************************************************/
 void correct_path(const char *input, char *output)
 {
-    int size = strlen(input);
+    size = strlen(input);
     struct position pos = {.row = 0, .column = 0};
 
     /* first attempt: move rows first */
-    init_path(input, output);
-    path_row_first(output, &pos, size);
+    strcpy(output, input);
+    init_path(input);
+    path_row_first(output, &pos);
 
     if ((pos.row != TARGET) || (pos.column != TARGET)) {
         /* didn't end in (R4, C4), try again and move columns first */
         pos.row = 0;
         pos.column = 0;
-        init_path(input, output);
-        path_column_first(output, &pos, size);
+        strcpy(output, input);
+        init_path(input);
+        path_column_first(output, &pos);
     }
 }
 
