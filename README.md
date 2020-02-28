@@ -14,14 +14,16 @@ There will only ever be one correct path and there will always be at least one q
 
 # Examples
 ## Example 1
-`Input: ???rrurdr?`
-
-`Output: dddrrurdrd`
+```
+Input: ???rrurdr?
+Output: dddrrurdrd
+```
 
 ## Example 2
-`Input: drdr??rrddd?`
-
-`Output: drdruurrdddd`
+```
+Input: drdr??rrddd?
+Output: drdruurrdddd
+```
 
 # Build
 
@@ -46,14 +48,11 @@ returns:
 
 returns:
 
-`solution: rrrrddllllddrrrr
-
+```
+solution: rrrrddllllddrrrr
 1 1 1 1 1
-
 0 0 0 0 1
-
 1 1 1 1 1
-
 1 0 0 0 0
-
-1 1 1 1 1`
+1 1 1 1 1
+```
