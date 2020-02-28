@@ -35,3 +35,20 @@ There will only ever be one correct path and there will always be at least one q
 2. Give an input
 
 `./correct_path ???rrurdr?`
+
+returns:
+
+`solution: dddrrurdrd`
+
+3. Give an input and display the matrix
+
+`./correct_path rrrrddlll?ddrrr? -d`
+
+returns:
+
+`solution: rrrrddllllddrrrr
+1 1 1 1 1
+0 0 0 0 1
+1 1 1 1 1
+1 0 0 0 0
+1 1 1 1 1`
