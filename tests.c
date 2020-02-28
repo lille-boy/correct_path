@@ -1,6 +1,7 @@
 /**************************************************************************************************
  *
- * Tests:
+ * Tests
+ *
  * r?d?drdd         -> rrdrdrdd
  * ???rrurdr?       -> dddrrurdrd
  * drdr??rrddd?     -> drdruurrdddd
@@ -8,6 +9,8 @@
  * dddd?uuuurrr???? -> ddddruuuurrrdddd
  * ddr?rdrrd?dr     -> ddrurdrrdldr
  * rdrdr??rddd?dr   -> rdrdruurdddldr
+ * d?rrurrdldr?     -> ddrrurrdldrd
+ * rrrrddlll?ddrrr? -> rrrrddllllddrrrr
  *
  *************************************************************************************************/
 #include <stdio.h>
@@ -17,95 +20,101 @@
 #include "correct_path.h"
 #include "tests.h"
 
-unsigned int pass = 0;
-unsigned int fail = 0;
-unsigned int executed = 0;
+struct results {
+    unsigned int pass;
+    unsigned int fail;
+    unsigned int executed;
+};
 
-static void test_path(const char *input, const char *expected)
+static void test_path(const char *input, const char *expected, struct results *results)
 {
-    bool match = true;
     int size = strlen(input);
     char *output = (char *)malloc(size);
 
-    correct_path(input, output);
-    executed++;
+    if (output != NULL) {
+        correct_path(input, output);
+        results->executed++;
 
-    for (int i = 0; i < size; i++) {
-        if (output[i] != expected[i]) {
-            match = false;
-            fail++;
-            if (DEBUG >= 1) {
-                printf("output: %s - expected: %s\n", output, expected);
-            }
-            goto exit;
+        if (strcmp(output, expected) == 0) {
+            results->pass++;
         }
+        else {
+            results->fail++;
+            printf("fail: %d\n", results->fail);
+            if (DEBUG >= 1) {
+                printf("%s -> %s [expected: %s]\n", input, output, expected);
+            }
+        }
+        free(output);
     }
-
-    if (match) {
-        pass++;
+    else {
+        printf("Memory allocation error\n");
     }
-
-    exit: free(output);
 }
 
-static void test_1(void)
+static void test_1(struct results *results)
 {
-    test_path("r?d?drdd", "rrdrdrdd");
+    test_path("r?d?drdd", "rrdrdrdd", results);
 }
 
-static void test_2(void)
+static void test_2(struct results *results)
 {
-    test_path("???rrurdr?", "dddrrurdrd");
+    test_path("???rrurdr?", "dddrrurdrd", results);
 }
 
-static void test_3(void)
+static void test_3(struct results *results)
 {
-    test_path("drdr??rrddd?", "drdruurrdddd");
+    test_path("drdr??rrddd?", "drdruurrdddd", results);
 }
 
-static void test_4(void)
+static void test_4(struct results *results)
 {
-    test_path("rd?u??dld?ddrr", "rdrurrdldlddrr");
+    test_path("rd?u??dld?ddrr", "rdrurrdldlddrr", results);
 }
 
-static void test_5(void)
+static void test_5(struct results *results)
 {
-    test_path("dddd?uuuurrr????", "ddddruuuurrrdddd");
+    test_path("dddd?uuuurrr????", "ddddruuuurrrdddd", results);
 }
 
-static void test_6(void)
+static void test_6(struct results *results)
 {
-    test_path("ddr?rdrrd?dr", "ddrurdrrdldr");
+    test_path("ddr?rdrrd?dr", "ddrurdrrdldr", results);
 }
 
-static void test_7(void)
+static void test_7(struct results *results)
 {
-    test_path("rdrdr??rddd?dr", "rdrdruurdddldr");
+    test_path("rdrdr??rddd?dr", "rdrdruurdddldr", results);
 }
 
-static void test_8(void)
+static void test_8(struct results *results)
 {
-    test_path("d?rrurrdldr?", "ddrrurrdldrd");
+    test_path("d?rrurrdldr?", "ddrrurrdldrd", results);
 }
 
-static void test_9(void)
+static void test_9(struct results *results)
 {
-    test_path("rrrrddlll?ddrrr?", "rrrrddllllddrrrr");
+    test_path("rrrrddlll?ddrrr?", "rrrrddllllddrrrr", results);
 }
 
+/******************************************************************************
+ * Main test function
+ *****************************************************************************/
 void tests_run_all(void)
 {
-    test_1();
-    test_2();
-    test_3();
-    test_4();
-    test_5();
-    test_6();
-    test_7();
-    test_8();
-    test_9();
+    struct results results = {.pass = 0, .fail = 0, .executed = 0};
 
-    printf("Tests Passed:   %d\n", pass);
-	printf("Tests Failed:   %d\n", fail);
-	printf("Tests Executed: %d\n", executed);
+    test_1(&results);
+    test_2(&results);
+    test_3(&results);
+    test_4(&results);
+    test_5(&results);
+    test_6(&results);
+    test_7(&results);
+    test_8(&results);
+    test_9(&results);
+
+    printf("Tests Passed:   %d\n", results.pass);
+    printf("Tests Failed:   %d\n", results.fail);
+    printf("Tests Executed: %d\n", results.executed);
 }
