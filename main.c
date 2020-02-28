@@ -21,9 +21,11 @@ int main(int argc, char *argv[])
         }
         else {
             char *solution = (char *)malloc(strlen(argv[1]));
-            correct_path(argv[1], solution);
-            printf("solution: %s\n", solution);
-            free(solution);
+            if (solution != NULL) {
+                correct_path(argv[1], solution);
+                printf("solution: %s\n", solution);
+                free(solution);
+            }
 
             if (argc > 2) {
                 char * display = argv[2];
